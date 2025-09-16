@@ -333,10 +333,6 @@ This project is designed for the **Stacks Grant Program** with the following hig
 - 🚀 **Scalability**: Cloud-native architecture
 - 💡 **Unique Value**: AI-powered NFT creation
 
-## 📞 **Support & Contact**
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/Solaristicsolar1/nft_AI_Marketplace/issues)
-- **Documentation**: [Full documentation](https://github.com/Solaristicsolar1/nft_AI_Marketplace/wiki)
 ---
 
 **Built with ❤️ for the Stacks ecosystem**
