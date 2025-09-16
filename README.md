@@ -317,7 +317,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 This project is designed for the **Stacks Grant Program** with the following highlights:
 
 ### **Technical Excellence**
-- ✅ **441-line Clarity contract** (exceeds 250 requirement)
 - ✅ **Zero syntax errors** (passes clarinet check)
 - ✅ **Comprehensive testing** (100% function coverage)
 - ✅ **Production-ready** AWS infrastructure
