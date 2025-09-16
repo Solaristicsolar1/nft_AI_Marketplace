@@ -317,7 +317,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 This project is designed for the **Stacks Grant Program** with the following highlights:
 
 ### **Technical Excellence**
-- ✅ **441-line Clarity contract** (exceeds 250 requirement)
 - ✅ **Zero syntax errors** (passes clarinet check)
 - ✅ **Comprehensive testing** (100% function coverage)
 - ✅ **Production-ready** AWS infrastructure
@@ -333,12 +332,6 @@ This project is designed for the **Stacks Grant Program** with the following hig
 - 👥 **Target Audience**: Artists, collectors, developers
 - 🚀 **Scalability**: Cloud-native architecture
 - 💡 **Unique Value**: AI-powered NFT creation
-
-## 📞 **Support & Contact**
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/Solaristicsolar1/nft_AI_Marketplace/issues)
-- **Documentation**: [Full documentation](https://github.com/Solaristicsolar1/nft_AI_Marketplace/wiki)
-- **Community**: [Join our Discord](https://discord.gg/nft-ai-marketplace)
 
 ---
 
