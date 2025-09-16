@@ -1,0 +1,18 @@
+{
+  "name": "nft-ai-marketplace",
+  "version": "1.0.0",
+  "description": "NFT Marketplace with AI-Generated Art on Stacks",
+  "scripts": {
+    "test": "clarinet test --coverage",
+    "check": "clarinet check",
+    "console": "clarinet console",
+    "deploy": "./deploy.sh"
+  },
+  "devDependencies": {
+    "@hirosystems/clarinet-sdk": "^1.0.0",
+    "typescript": "^4.9.0"
+  },
+  "keywords": ["stacks", "nft", "ai", "blockchain", "marketplace"],
+  "author": "Solaristicsolar1",
+  "license": "MIT"
+}
