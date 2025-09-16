@@ -1,4 +1,4 @@
-;; AI NFT Marketplace Contract - Enhanced Version
+;; AI NFT Marketplace Contract - Debugged Version
 ;; Features: Minting, Trading, Auctions, Royalties, AI Metadata, Collections
 
 ;; Define NFT token
@@ -14,7 +14,11 @@
 (define-constant ERR-AUCTION-ACTIVE (err u411))
 (define-constant ERR-INSUFFICIENT-FUNDS (err u402))
 (define-constant ERR-NOT-FOR-SALE (err u403))
+(define-constant ERR-INVALID-INPUT (err u405))
 (define-constant MARKETPLACE-FEE u250) ;; 2.5%
+(define-constant MAX-ROYALTY u1000) ;; 10%
+(define-constant MIN-AUCTION-DURATION u10) ;; Minimum 10 blocks
+(define-constant MAX-AUCTION-DURATION u14400) ;; Maximum ~100 days
 
 ;; Data Variables
 (define-data-var next-nft-id uint u1)
@@ -84,10 +88,32 @@
   reputation-score: uint
 })
 
+;; Input Validation Functions
+(define-private (validate-string-input (input (string-ascii 256)))
+  (and (> (len input) u0) (<= (len input) u256)))
+
+(define-private (validate-short-string (input (string-ascii 64)))
+  (and (> (len input) u0) (<= (len input) u64)))
+
+(define-private (validate-model-string (input (string-ascii 32)))
+  (and (> (len input) u0) (<= (len input) u32)))
+
+(define-private (validate-price (price uint))
+  (and (> price u0) (<= price u1000000000000))) ;; Max 1M STX
+
+(define-private (validate-royalty (royalty uint))
+  (<= royalty MAX-ROYALTY))
+
+(define-private (validate-auction-duration (duration uint))
+  (and (>= duration MIN-AUCTION-DURATION) (<= duration MAX-AUCTION-DURATION)))
+
 ;; Collection Management Functions
 (define-public (create-collection (name (string-ascii 64)) (description (string-ascii 256)))
   (let ((collection-id (var-get next-collection-id)))
     (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
+    (asserts! (validate-short-string name) ERR-INVALID-INPUT)
+    (asserts! (validate-string-input description) ERR-INVALID-INPUT)
+    
     (map-set collections collection-id {
       name: name,
       description: description,
@@ -99,7 +125,7 @@
     (var-set next-collection-id (+ collection-id u1))
     (ok collection-id)))
 
-;; Enhanced NFT Minting with AI Metadata
+;; Enhanced NFT Minting with AI Metadata and Validation
 (define-public (mint-ai-nft 
   (title (string-ascii 64)) 
   (description (string-ascii 256)) 
@@ -111,8 +137,14 @@
   (royalty-percent uint))
   (let ((nft-id (var-get next-nft-id)))
     (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
-    (asserts! (<= royalty-percent u1000) ERR-INVALID-PRICE) ;; Max 10% royalty
-    (asserts! (> price u0) ERR-INVALID-PRICE)
+    (asserts! (validate-short-string title) ERR-INVALID-INPUT)
+    (asserts! (validate-string-input description) ERR-INVALID-INPUT)
+    (asserts! (validate-string-input image-uri) ERR-INVALID-INPUT)
+    (asserts! (validate-string-input ai-prompt) ERR-INVALID-INPUT)
+    (asserts! (validate-model-string ai-model) ERR-INVALID-INPUT)
+    (asserts! (validate-price price) ERR-INVALID-PRICE)
+    (asserts! (validate-royalty royalty-percent) ERR-INVALID-INPUT)
+    (asserts! (is-some (map-get? collections collection-id)) ERR-NOT-FOUND)
     
     ;; Mint NFT
     (try! (nft-mint? ai-nft nft-id tx-sender))
@@ -180,6 +212,7 @@
     (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
     (asserts! (get for-sale metadata) ERR-NOT-FOR-SALE)
     (asserts! (not (is-eq tx-sender owner)) ERR-NOT-AUTHORIZED)
+    (asserts! (validate-price price) ERR-INVALID-PRICE)
     
     ;; Calculate fees
     (let ((marketplace-fee-amount (/ (* price MARKETPLACE-FEE) u10000))
@@ -241,14 +274,15 @@
       reputation-score: (+ (get reputation-score buyer-stats) u2)
     }))))
 
-;; Auction Functions
+;; Auction Functions with Validation
 (define-public (create-auction (nft-id uint) (starting-price uint) (duration-blocks uint))
   (let ((metadata (unwrap! (map-get? nft-metadata nft-id) ERR-NOT-FOUND))
         (owner (unwrap! (nft-get-owner? ai-nft nft-id) ERR-NOT-FOUND)))
     
     (asserts! (is-eq tx-sender owner) ERR-NOT-AUTHORIZED)
     (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
-    (asserts! (> starting-price u0) ERR-INVALID-PRICE)
+    (asserts! (validate-price starting-price) ERR-INVALID-PRICE)
+    (asserts! (validate-auction-duration duration-blocks) ERR-INVALID-INPUT)
     
     ;; Create auction
     (map-set auctions nft-id {
@@ -273,6 +307,7 @@
     (asserts! (< block-height (get end-block auction)) ERR-AUCTION-ENDED)
     (asserts! (> bid-amount (get current-bid auction)) ERR-INVALID-PRICE)
     (asserts! (not (is-eq tx-sender (get seller auction))) ERR-NOT-AUTHORIZED)
+    (asserts! (validate-price bid-amount) ERR-INVALID-PRICE)
     
     ;; Return previous bid if exists
     (match (get highest-bidder auction)
@@ -382,12 +417,12 @@
 (define-read-only (get-nft-owner (nft-id uint))
   (nft-get-owner? ai-nft nft-id))
 
-;; Set NFT for sale
+;; Set NFT for sale with validation
 (define-public (set-for-sale (nft-id uint) (price uint))
   (let ((metadata (unwrap! (map-get? nft-metadata nft-id) ERR-NOT-FOUND))
         (owner (unwrap! (nft-get-owner? ai-nft nft-id) ERR-NOT-FOUND)))
     (asserts! (is-eq tx-sender owner) ERR-NOT-AUTHORIZED)
-    (asserts! (> price u0) ERR-INVALID-PRICE)
+    (asserts! (validate-price price) ERR-INVALID-PRICE)
     (asserts! (not (var-get contract-paused)) ERR-NOT-AUTHORIZED)
     
     (map-set nft-metadata nft-id (merge metadata {
