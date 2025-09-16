@@ -8,7 +8,7 @@ bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
 s3 = boto3.client('s3')
 rekognition = boto3.client('rekognition')
 
-BUCKET_NAME = 'nft-ai-assets-{account-id}'  # Replace with actual bucket
+BUCKET_NAME = 'nft-ai-assets-192018386876'
 
 def lambda_handler(event, context):
     try:
@@ -84,12 +84,19 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json'},
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps(metadata)
         }
         
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps({'error': str(e)})
         }
