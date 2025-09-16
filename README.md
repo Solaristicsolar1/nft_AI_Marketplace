@@ -338,8 +338,6 @@ This project is designed for the **Stacks Grant Program** with the following hig
 
 - **GitHub Issues**: [Report bugs or request features](https://github.com/Solaristicsolar1/nft_AI_Marketplace/issues)
 - **Documentation**: [Full documentation](https://github.com/Solaristicsolar1/nft_AI_Marketplace/wiki)
-- **Community**: [Join our Discord](https://discord.gg/nft-ai-marketplace)
-
 ---
 
 **Built with ❤️ for the Stacks ecosystem**
