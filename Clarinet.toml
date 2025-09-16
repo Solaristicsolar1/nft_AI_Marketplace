@@ -1,0 +1,20 @@
+[project]
+name = "nft-ai-marketplace"
+description = "NFT Marketplace with AI-Generated Art on Stacks"
+authors = ["Solaristicsolar1"]
+telemetry = false
+cache_dir = "./.clarinet"
+
+[contracts.ai-nft-marketplace]
+path = "contracts/ai-nft-marketplace.clar"
+clarity_version = 2
+epoch = 2.4
+
+[repl.analysis]
+passes = ["check_checker"]
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false

@@ -7,35 +7,16 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'nft-ai-assets-${AWS::AccountId}'
-      PublicReadPolicy: false
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders: ['*']
             AllowedMethods: [GET, PUT, POST]
             AllowedOrigins: ['*']
-
-  # CloudFront Distribution
-  NFTCloudFront:
-    Type: AWS::CloudFront::Distribution
-    Properties:
-      DistributionConfig:
-        Origins:
-          - DomainName: !GetAtt NFTAssetsBucket.RegionalDomainName
-            Id: S3Origin
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOAI}'
-        DefaultCacheBehavior:
-          TargetOriginId: S3Origin
-          ViewerProtocolPolicy: redirect-to-https
-          AllowedMethods: [GET, HEAD]
-          CachedMethods: [GET, HEAD]
-        Enabled: true
-
-  CloudFrontOAI:
-    Type: AWS::CloudFront::OriginAccessIdentity
-    Properties:
-      OriginAccessIdentityConfig:
-        Comment: 'OAI for NFT Assets'
 
   # Lambda Execution Role
   LambdaExecutionRole:
@@ -66,5 +47,9 @@ Resources:
 Outputs:
   BucketName:
     Value: !Ref NFTAssetsBucket
-  CloudFrontDomain:
-    Value: !GetAtt NFTCloudFront.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketName'
+  LambdaRoleArn:
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaRoleArn'
