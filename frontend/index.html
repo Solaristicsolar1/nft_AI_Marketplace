@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI NFT Marketplace</title>
+    <script src="https://unpkg.com/@stacks/connect@21.0.0/dist/umd/index.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .nft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .nft-card { border: 1px solid #eee; padding: 15px; border-radius: 8px; text-align: center; }
+        .nft-image { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>AI NFT Marketplace</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Generate AI Art NFT</h2>
+            <input type="text" id="prompt" placeholder="Describe your art (e.g., 'Cyberpunk city at sunset')" />
+            <input type="text" id="style" placeholder="Art style (e.g., 'oil painting', 'digital art')" />
+            <input type="text" id="title" placeholder="NFT Title" />
+            <textarea id="description" placeholder="NFT Description"></textarea>
+            <input type="number" id="price" placeholder="Price in STX" />
+            <button onclick="generateAndMint()">Generate & Mint NFT</button>
+            <div id="generation-status"></div>
+        </div>
+        
+        <div class="card">
+            <h2>Wallet Connection</h2>
+            <button onclick="connectWallet()">Connect Stacks Wallet</button>
+            <div id="wallet-info"></div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Marketplace</h2>
+        <div id="nft-grid" class="nft-grid"></div>
+    </div>
+
+    <script>
+        let userSession = null;
+        
+        // Connect to Stacks wallet
+        async function connectWallet() {
+            const appConfig = new StacksConnect.AppConfig(['store_write', 'publish_data']);
+            userSession = new StacksConnect.UserSession({ appConfig });
+            
+            if (userSession.isUserSignedIn()) {
+                showUserInfo();
+            } else {
+                StacksConnect.showConnect({
+                    appDetails: { name: 'AI NFT Marketplace', icon: window.location.origin + '/logo.png' },
+                    redirectTo: '/',
+                    onFinish: () => { window.location.reload(); }
+                });
+            }
+        }
+        
+        function showUserInfo() {
+            const userData = userSession.loadUserData();
+            document.getElementById('wallet-info').innerHTML = 
+                `<p>Connected: ${userData.profile.stxAddress.mainnet}</p>`;
+        }
+        
+        // Generate AI art and mint NFT
+        async function generateAndMint() {
+            const prompt = document.getElementById('prompt').value;
+            const style = document.getElementById('style').value;
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('price').value;
+            
+            if (!prompt || !title || !price) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            document.getElementById('generation-status').innerHTML = 'Generating AI art...';
+            
+            try {
+                // Call Lambda function to generate art
+                const response = await fetch('YOUR_LAMBDA_API_ENDPOINT', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, style })
+                });
+                
+                const artData = await response.json();
+                
+                document.getElementById('generation-status').innerHTML = 'Minting NFT...';
+                
+                // Mint NFT on Stacks blockchain
+                const contractAddress = 'YOUR_CONTRACT_ADDRESS';
+                const contractName = 'ai-nft-marketplace';
+                
+                const txOptions = {
+                    contractAddress,
+                    contractName,
+                    functionName: 'mint-ai-nft',
+                    functionArgs: [
+                        StacksConnect.stringAsciiCV(title),
+                        StacksConnect.stringAsciiCV(description),
+                        StacksConnect.stringAsciiCV(artData.image_url),
+                        StacksConnect.uintCV(parseInt(price) * 1000000) // Convert to microSTX
+                    ],
+                    network: new StacksConnect.StacksTestnet(),
+                    onFinish: (data) => {
+                        document.getElementById('generation-status').innerHTML = 
+                            `NFT minted! Transaction: ${data.txId}`;
+                        loadMarketplace();
+                    }
+                };
+                
+                await StacksConnect.openContractCall(txOptions);
+                
+            } catch (error) {
+                document.getElementById('generation-status').innerHTML = 
+                    `Error: ${error.message}`;
+            }
+        }
+        
+        // Load marketplace NFTs
+        async function loadMarketplace() {
+            // This would typically call a backend API to fetch NFTs
+            // For demo purposes, showing placeholder
+            const nftGrid = document.getElementById('nft-grid');
+            nftGrid.innerHTML = '<p>Loading NFTs from blockchain...</p>';
+        }
+        
+        // Initialize
+        window.onload = function() {
+            if (userSession && userSession.isUserSignedIn()) {
+                showUserInfo();
+            }
+            loadMarketplace();
+        };
+    </script>
+</body>
+</html>
